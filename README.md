@@ -9,4 +9,5 @@
 - [Chapter 5. 문법](./Part1/Chapter5.md)
 
 ## PART 2 스코프와 클로져
+- [Chapter 1. 스코프란 무엇인가](./Part2/Chapter1.md)
 - [Chapter 2. 렉시컬 스코프](./Part2/Chapter2.md)
