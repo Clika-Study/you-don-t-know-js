@@ -12,3 +12,4 @@
 - [Chapter 1. 스코프란 무엇인가](./Part2/Chapter1.md)
 - [Chapter 2. 렉시컬 스코프](./Part2/Chapter2.md)
 - [Chapter 3. 함수 vs 블록 스코프](./Part2/Chapter3.md)
+- [Chapter 4. 호이스팅](./Part2/Chapter4.md)
