@@ -44,16 +44,28 @@
   foo() // 2
   ```
 - 엄격 모드 `strict mode`에서는 전역 객체가 기본 바인딩 대상에서 제외된다.
-  - **단, 호출부의 엄격 모드는 상관없다**
   ```js
   function foo() {
     "use strict"
     console.log(this.a)
   }
-
+  
   var a = 2 
-
+  
   foo() // TypeError: 'this' is 'undefined' 
+  ```
+- **단, 호출부의 엄격 모드는 상관없다**
+  ```js
+  function foo() {
+    console.log(this.a)
+  }
+  
+  var a = 2 
+  
+  (function() {
+    "use strict"
+    foo() // 2
+  })()
   ```
 ### 2. 암시적 바인딩
 - 호출부에 콘텍스트 객체가 있는지, 즉 객체의 소유/포함 여부를 확인하는 것이다.
