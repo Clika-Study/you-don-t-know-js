@@ -70,18 +70,18 @@
 ### 2. 암시적 바인딩
 - 호출부에 콘텍스트 객체가 있는지, 즉 객체의 소유/포함 여부를 확인하는 것이다.
   - 함수 레퍼런스에 대한 콘텍스트 객체가 존재할 때 암시적 바인딩 규칙에 따르면 바로 이 콘텍스트 객체가 함수 호출시 `this`에 바인딩 된다.  
-  ```js
-  function foo() {
-    console.log(this.a)
-  }
-
-  var obj = {
-    a: 2,
-    foo: foo
-  }
-
-  obj.foo() // 2
-  ```
+    ```js
+    function foo() {
+      console.log(this.a)
+    }
+  
+    var obj = {
+      a: 2,
+      foo: foo
+    }
+  
+    obj.foo() // 2
+    ```
 #### 암시적 소실
 ### 3. 명시적 바인딩
 ### 4. new 바인딩
