@@ -104,7 +104,7 @@
   - 이럴 때 모든 자바스크립트 함수에 사용할 수 있는 유틸리티가 바로 `apply`와 `call` 메서드다.
   - 두 메서드는 `this`에 바인딩 할 객체를 첫째 인자로 받아 함수 호출 시 이 객체를 `this`로 세팅한다. `this`를 지정한 객체로 직접 바인딩하므로 이를 명시적 바인딩이라 한다.
  
-#### 하드 바인딩
+#### 하드 바인딩: Function.prototype.bind
 ```js
 function foo() {
   console.log(this.a)
