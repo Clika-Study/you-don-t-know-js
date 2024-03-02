@@ -122,7 +122,36 @@ bar() // 2
 bar.call(window) // 2
 ```
 - 함수 `bar`는 내부에서 `foo.call(obj)`로 `foo`를 호출하면서 `obj`를 `this`에 강제로 바인딩하도록 하드 코딩한다.
-  - 따라서 `bar`를 어떻게 호출하든 이 함수는 항상 `obj`를 바인딩하여 `foo`를 실행한다. 이런 바인딩은 명시적이고 강력해서 하드 바인딩이라고 한다. 
+  - 따라서 `bar`를 어떻게 호출하든 이 함수는 항상 `obj`를 바인딩하여 `foo`를 실행한다. 이런 바인딩은 명시적이고 강력해서 하드 바인딩이라고 한다.
+- 하드 바인딩은 매우 자주 쓰는 패턴이어서 ES5 내장 유틸리티 `Function.prototype.bind`가 구현되어 있다.
+  ```js
+  function foo(something) {
+    console.log(this.a, something)
+    return this.a + something
+  }
+
+  var obj = {
+    a: 2
+  }
+
+  var bar = foo.bind(obj)
+  var b = bar(3) // 2 3
+  console.log(b) // 5
+  ``` 
+#### API 호출 콘텍스트
+- 많은 라이브러리 함수와 자바스크립트 언어 및 호스트 환경에 내장된 여러 새로운 함수는 대개 콘텍스트라 불리는 선택적인 인자를 제공한다. 이는 `bind`를 써서 콜백 함수의 `this`를 지정할 수 없는 경우를 대비한 일종의 예비책이다.
+  ```js
+  function foo(el) {
+    console.log(el, this.id)
+  }
+
+  var obj = {
+    id: "고구마"
+  }
+
+  // foo 호출 시 obj를 this로 사용한다
+  [1, 2, 3].forEach(foo, obj) // 1 고구마 2 고구마 3 고구마
+  ```  
 ### 4. new 바인딩
 
 ## 4가지 규칙의 우선순위
