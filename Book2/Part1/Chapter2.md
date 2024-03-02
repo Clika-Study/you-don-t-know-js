@@ -221,7 +221,45 @@ bar(3) // a: 2, b: 3
     bar(3) // a: 2, b: 3
     ```
 - 기능적으로 더 안전하다는 의미 외에도 pi로 표기하면 `this`는 텅빈 객체로 하겠다는 의도를 `null`보다 더 확실하게 밝히는 효과가 있다.
-### 간접 레퍼런스
-### 소프트 바인딩
+### 간접 레퍼런스 Indirect References
+- 의도적이든 아니든 유의할 점은 간접 레퍼런스가 생성되는 경우로, 함수를 호출하면 무조건 기본 바인딩 규칙이 적용되어 버린다.
+  ```js
+  function foo() {
+    console.log(this.a)
+  }
+  var a = 2
+  var o = {
+    a: 3,
+    foo: foo
+  }
+  var p = {
+    a: 4
+  }
 
+  o.foo() // 3
+  (p.foo = o.foo)() // 2
+  ```
+  - 위의 예시에서 할당 표현식 `p.foo = o.foo`의 결괏값은 원 함수 객체의 레퍼런스이므로 실제로 호출부는 처음 예상과는 달리 `p.foo()` `o.foo()`가 아니고 `foo()`다. 그래서 기본 바인딩 규칙이 적용된다.
+### 소프트 바인딩
+- 하드 바인딩은 함수의 유연성을 크게 떨어뜨리기 때문에 `this`를 암시적 바인딩하거나 나중에 다시 명시적 바인딩하는 식으로 수동으로 오버라이딩하는 것이 불가능하다.
+- 암시적/명시적 바인딩 기법을 통해 임의로 `this` 바인딩을 하는 동시에 전역 객체나 `undefined`가 아닌 다른 기본 바인딩 값을 세팅할 수 있는 유틸리티가 있다. 이른바 소프트 바인딩 `Soft binding`이 그것이다.
+- `softBind()` 유틸리티는 호출 시점에 `this`를 체크하는 부분에서 주어진 함수를 래핑하여 전역 객체나 `undefined`일 경우엔 미리 준비한 대체 기본 객체로 세팅한다.
+  ```js
+  function foo() {
+    console.log("name: " + this.name)
+  }
+  var obj = {name: "obj"},
+      obj2 = {name: "obj2"},
+      obj3 = {name: "obj3"}
+
+  var fooOBJ = foo.softBind(obj)
+  fooOBJ() // name: obj
+
+  obj2.foo = foo.softBind(obj)
+  obj2.foo() // name: obj2
+
+  fooOBJ.call(obj3) // name: obj3
+  setTimeout(obj2.foo, 10)
+  // name: obj 👉 소프트 바인딩이 적용됐다
+  ```
 ## 어휘적 this
