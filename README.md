@@ -23,3 +23,4 @@
 ### Part 1 this와 객체 프로토타입
 
 - [Chapter 1. this라나 뭐라나](./Book2/Part1/Chapter1.md)
+- [Chapter 2. this가 이런 거로군!](./Book2/Part1/Chapter2.md)
