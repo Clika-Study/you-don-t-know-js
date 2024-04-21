@@ -113,3 +113,51 @@
   b2.speak();
   ```
 - 한눈에 봐도 OLOO 스타일에선 다른 객체와의 연결에만 집중하면 된다는 걸 알 수 있다. OO 스타일의 코드에서는 생성자, 프로토타입, `new` 호출 등을 하면서 클래스처럼 보이려고 하지만 사실은 헷갈리기만 하는 장치들을 쓰고 있는데, OLOO에는 그런 것을 전혀 쓰지 않고 똑같은 기능을 구현하고 있다.
+
+## 6.2 클래스 vs 객체
+- 이번에는 실무에서 사용할 수 있는 좀더 구체적인 코드를 작성하며 클래스와 객체 스타일을 비교해보자. 
+### 6.2.1 위젯 클래스
+- 모든 위젯 작동의 공통적인 기반이 될 부모 클래스 `Widget`을 작성하고, 그 다음에 유형마다 다른 위젯(여기서는 `Button`을 예시로 작성해본다)을 나타내는 자식 클래스를 작성한다.
+  - 이번 예문에서는 ES6 `class` 간편 구문을 사용하여 작성한다: 
+```js
+// 부모 클래스
+class Widget {
+  constructor(width, height) {
+    this.width = width || 50;
+    this.height = height || 50;
+    this.$elem = null;
+  }
+ render($where) {
+    if (this.$elem) {
+      this.$elem.css({
+        width: `${this.width}px`,
+        height: `${this.height}px`,
+      }).appendTo($where);
+    }
+  }
+}
+// 자식 클래스
+class Button extends Widget {
+  constructor(width, height, label) {
+    super(width, height);
+    this.label = label || "Default";
+    this.$elem = $("<button>").text(this.label);
+  }
+  render($where) {
+    super($where);
+    this.$elem.click(this.onClick.bind(this));
+  }
+  onClick(evt) {
+    console.log(`${this.label} 버튼이 클릭됨!`);
+  }
+}
+// 버튼 클래스로 화면에 버튼 UI 표시하기
+$(document).ready(function() {
+  var $body = $(document.body);
+  var btn1 = new Button(125, 30, "Hello");
+  var btn2 = new Button(150, 40, "World");
+  btn1.render($body);
+  btn2.render($body);
+})
+```
+- OO 디자인 패턴에 따르면 부모 클래스에는 기본 `render()`만 선언해두고 자식 클래스가 이를 오버라이드하도록 유도한다. 기본 기능을 완전히 갈아치운다기 보다는 버튼에만 해당하는 작동을 덧붙이는 식으로 기본 기능을 증강 `augmentation`한다.
