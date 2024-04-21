@@ -34,3 +34,24 @@
     // ...
   }
   ```
+### 6.1.2 위임 이론
+- 이번에는 위의 문제를 클래스 대신 작동 위임을 이용하여 작성해본다:
+  ```js
+  // Task 객체에는 다양한 태스크에서 사용할(= 위임할) 유틸리티 메서드가 포함되어 있다.
+  Task = {
+    setID: function(ID) { this.id = ID; },
+    outputID: function() { console.log(this.id); }
+  };
+  // 'XYZ'가 'Task'에 위임한다.
+  // Task 유틸리티 객체에 연결해 필요할 때 특정 태스크 객체가 Task에 작동을 위임하도록 작성한다.
+  XYZ = Object.create(Task);
+  XYZ.prepareTask = function () {
+    this.setID(ID);
+    this.label = Label;
+  }
+  XYZ.outputTaskDetails = function() {
+    this.outputID();
+  }
+  ABC = Object.create(Task);
+  // ... 
+  ```
