@@ -161,3 +161,51 @@
   })
   ```
 - OO 디자인 패턴에 따르면 부모 클래스에는 기본 `render()`만 선언해두고 자식 클래스가 이를 오버라이드하도록 유도한다. 기본 기능을 완전히 갈아치운다기 보다는 버튼에만 해당하는 작동을 덧붙이는 식으로 기본 기능을 증강 `augmentation`한다.
+
+### 6.2.2 위젯 객체의 위임
+- 이번에는 OLOO 스타일의 위임을 적용하여 `Widget/Button`을 작성한다 (훨씬 간단해진다!): 
+  ```js
+  // 여기서 Widget은 갖가지 유형의 위젯이 위임하여 사용할 수 있는 '유틸리티 창고 역할'을 맡는다
+  var Widget = {
+    init: funciton(width, height) {
+      this.width = width || 50;
+      this.height = height || 50;
+      this.$elem = $("<button>").text(this.label);
+    },
+    insert: function($where) {
+      if (this.$elem) {
+        this.$elem.css({
+          width: `${this.width}px`,
+          height: `${this.height}px`,
+        }).appendTo($where);
+      }
+    }
+  }
+  var Button = Object.create(Widget);
+  Button.setup = function(width, height, label) {
+    // 위임 호출
+    this.init(width, height);
+    this.label = label || "Default";
+    this.$elem = $("<button>").text(this.label);
+  }
+  Button.build = function($where) {
+    // 위임 호출
+    this.insert($where);
+    this.$elem.click(this.onClick.bind(this));
+  }
+  Button.onClick = function(evt) {
+    console.log(`${this.label} 버튼이 클릭됨!`);
+  }
+
+  // 버튼 클래스로 화면에 버튼 UI 표시하기
+  $(document).ready(function() {
+    var $body = $(document.body);
+    var btn1 = new Button(125, 30, "Hello");
+    var btn2 = new Button(150, 40, "World");
+    btn1.render($body);
+    btn2.render($body);
+  })
+  ```
+- OLOO 관점에서는 `Widget`이 부모도, `Button`이 자식도 아니다.  `Widget`은 보통 객체로, 갖가지 유형의 위젯이 위임하여 사용할 수 있는 유틸리티 창고 역할을 맡는다. 그리고 `Button`은 그냥 단독으로 존재하는 객체일 뿐이다. **물론 `Widget`과 위임 링크는 맺어진 상태다!**
+- 위임 디자인 패턴에서는 일반적인 이름을 공유하지 않고 각각을 좀 더 서술적으로 명명할 수 있다.
+- 클래스 생성자로는 (필수는 아니나 권장하는대로 하자면) 생성과 초기화를 한번에 해야 하지만, OLOO 방식에서는 이 두 단계를 나누어 실행할 수 있다. 이는 '관심사 분리의 원칙 (Principle of Suparation of Concerns)'을 더 잘 반영한 패턴이다.
