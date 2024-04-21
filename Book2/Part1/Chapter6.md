@@ -278,54 +278,54 @@
   ```
 
 - 위의 예문을 OLOO 스타일의 작동 위임을 최대한 활용하여 더 간단한 형태로 디자인해보면 다음과 같다:
-```js
-var LoginController = {
-  errors: [],
-  getUser: function() {
-    return document.getElementById("login_username").value;
-  },
-  validateEntity: function(user) {
-    user = user || this.getUser();
-    if (!user) {
-      return this.failure("사용자명을 입력하세요.")
+  ```js
+  var LoginController = {
+    errors: [],
+    getUser: function() {
+      return document.getElementById("login_username").value;
+    },
+    validateEntity: function(user) {
+      user = user || this.getUser();
+      if (!user) {
+        return this.failure("사용자명을 입력하세요.")
+      }
+      else if (user.length < 8) {
+        return this.failure("사용자명은 8자 이상이어야 합니다.")
+      }
+      return true
+    }.
+    showDialog: function(title, msg) { /* 사용자에게 다이얼로그 창으로 타이틀과 메시를 표시 */ },
+    failure: function(err) {
+      this.errors.push(err);
+      this.showDialog("에러", `로그인 실패: ${err}`);
     }
-    else if (user.length < 8) {
-      return this.failure("사용자명은 8자 이상이어야 합니다.")
+  }
+  
+  // AuthController가 LoginController에 위임하도록 연결한다.
+  var AuthController = Object.create(LoginController);
+  AuthController.errors = [];
+  AuthController.checkAuth = function() {
+    var user = this.login.getUser();
+    if (this.login.validateEntity(user)) {
+      this.server("/check-user", {
+        user: user,
+        pw: pw
+      }).fail(this.failure.bind(this));
     }
-    return true
-  }.
-  showDialog: function(title, msg) { /* 사용자에게 다이얼로그 창으로 타이틀과 메시를 표시 */ },
-  failure: function(err) {
-    this.errors.push(err);
-    this.showDialog("에러", `로그인 실패: ${err}`);
-  }
-}
-
-// AuthController가 LoginController에 위임하도록 연결한다.
-var AuthController = Object.create(LoginController);
-AuthController.errors = [];
-AuthController.checkAuth = function() {
-  var user = this.login.getUser();
-  if (this.login.validateEntity(user)) {
-    this.server("/check-user", {
-      user: user,
-      pw: pw
-    }).fail(this.failure.bind(this));
-  }
-};
-AuthController.server = function(url, data) {
-  return $ajax({
-    url: url,
-    data: data,
-  });
-};
-
-// AuthController는 평범한 객체이므로 어떤 작업을 시키기 위해 new 연산자를 이용하여 인스턴스화할 필요가 없다.
-AuthController.checkAuth();
-// 위임 연쇄에 하나 또는 그 이상의 객체를 추가로 생성해야 할 경우는 다음과 같이 하면 된다. 역시 클래스 인스턴스화는 필요없다.
-var controller1 = Object.create(AuthController);
-var controller2 = Object.create(AuthController);
-```
+  };
+  AuthController.server = function(url, data) {
+    return $ajax({
+      url: url,
+      data: data,
+    });
+  };
+  
+  // AuthController는 평범한 객체이므로 어떤 작업을 시키기 위해 new 연산자를 이용하여 인스턴스화할 필요가 없다.
+  AuthController.checkAuth();
+  // 위임 연쇄에 하나 또는 그 이상의 객체를 추가로 생성해야 할 경우는 다음과 같이 하면 된다. 역시 클래스 인스턴스화는 필요없다.
+  var controller1 = Object.create(AuthController);
+  var controller2 = Object.create(AuthController);
+  ```
 
 ## 6.4 더 멋진 구문: function 키워드가 필요없는 단축 메서드
 - ES6 class가 시선을 잡아끄는 매력 중 하나는 클래스 메서드를 짧은 구문으로 선언할 수 있다는 점이다. 즉 선언시 `function` 키워드를 쓰지 않아도 된다.
