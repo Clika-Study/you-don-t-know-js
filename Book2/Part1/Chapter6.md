@@ -350,25 +350,45 @@ var controller2 = Object.create(AuthController);
 ## 6.5 인트로스펙션
 - 타입 인트로스펙션 Type Introspection이란 인스턴스를 조사해 객체 유형을 거꾸로 유추하는 걸 말한다.
   - 클래스 인스턴스에서 타입 인트로스펙션은 주로 인스턴스가 생성된 소스 객체의 구조와 기능을 추론하는 용도로 쓰인다.
-```js
-function Foo() { /* ... */ }
-Foo.prototype...
+  ```js
+  function Foo() { /* ... */ }
+  Foo.prototype...
+  
+  function Bar() { /* ... */ }
+  Bar.prototype = Object.creatE(Foo.prototype);
+  
+  var b1 = new Bar("b1")
+  
+  // instanceof 연산자와 .prototype을 이용하여 타입 인트로스펙션을 실시한다.
+  // Foo와 Bar의 관계 대조하기
+  Bar.prototype instanceof Foo; // true
+  Object.getPrototypeOf(Bar.prototype) === Foo.prototype; // true
+  Foo.prototype.isPrototypeOf(Bar.prototype); // true
+  
+  // b1과 Foo, Bar의 관계를 대조하기
+  b1 instanceof Foo; // true
+  b1 instanceof Bar; // true
+  Object.getPrototypeOf(b1) === Bar.prototype; // true
+  Foo.prototype.isPrototypeOf(b1); // true
+  Bar.prototype.isPrototypeOf(b1); // true
+  ```
+### 덕 타이핑
+- 덕 타이핑 Duck Typing 이라고 하여 많은 개발자가 instancof보다 선호하는 또 다른 타입 인트로스펙션 방법이 있다.
+  - 이는 "오리처럼 보이는 종물이 오리 소리(꽥꽥)를 낸다면 오리가 분명하다"라는 옛 속담에서 유래된 용어다.
+  - 예를 들면, 위임 가능한 `something()` 함수를 가진 객체와 `a1`의 관계를 애써 조사하는 대신 `a1.something`을 테스트, 즉 `a1`에 직속된 메서드인지, 다른 객체에 위임되어 발견된 메서드인지 상관없이 `a1`이 `something()`을 호출할 자격이 있는지 판단하는 것이다.
+  ```js
+  if (a1.something) {
+    a1.something();
+  }
+  ```
+- 가장 유명한 덕 타이핑의 실례가 바로 ES6 프라미스 `Promise`다.
+  - 어떤 임의의 객체 레퍼런스가 프라미스인지 판단하기 위해 해당 객체가 `then()` 함수를 가졌는지 조사하는 식으로 테스트한다. 즉 어떤 객체에 `then()` 메서드가 있으면 ES6 프라미스는 무조건 이 객체는 `Thenable` (then 메서드를 사용할 수 있는) 하다고 판단한다. 따라서 어떤 이유에서건 우연히 `then`이라는 이름의 메서드를 가진 Non-Promise 객체가 있다면 가능한 한 ES6 프라미스 체계와는 멀리 떨어진 곳으로 분리해 그릇된 오해가 없도록 하는 게 좋다.
+ 
+## 6.6 정리하기
+- 클래스와 상속은 소프트웨어 아키텍처를 설계할 때 선택을 해도, 안해도 되는 디자인 패턴의 하나다.
+- 작동 위임 패턴은 객체를 부모/자식 관계가 아닌 동등한 입장으로 연결한다.
+- 객체만으로 구성된 코드를 구성한다면 사용 구문도 단순해질 뿐만 아니라, 실제로 코드 아키텍쳐 또한 더 간단하게 가져갈 수 있다.
+- 즉 OLOO는 클래스라는 추상화 장치 없이도 직접 객체를 생성 및 연계한다.
 
-function Bar() { /* ... */ }
-Bar.prototype = Object.creatE(Foo.prototype);
-
-var b1 = new Bar("b1")
-
-// instanceof 연산자와 .prototype을 이용하여 타입 인트로스펙션을 실시한다.
-// Foo와 Bar의 관계 대조하기
-Bar.prototype instanceof Foo; // true
-Object.getPrototypeOf(Bar.prototype) === Foo.prototype; // true
-Foo.prototype.isPrototypeOf(Bar.prototype); // true
-
-// b1과 Foo, Bar의 관계를 대조하기
-b1 instanceof Foo; // true
-b1 instanceof Bar; // true
-Object.getPrototypeOf(b1) === Bar.prototype; // true
-Foo.prototype.isPrototypeOf(b1); // true
-Bar.prototype.isPrototypeOf(b1); // true
-```
+## 느낀점
+- 무엇인지도 모르고 잘만 사용하던 것들에 이름붙이기(라벨링)를 하고, 그의 미처 몰랐던 쓰임새를 조금 더 알게 된다. 만약에 오늘 공부한 내용에 나오는 여러 용법을 사용해본 경험이 없었다면, 이걸 도대체 어디에 어떻게 사용하라는 것인지 전혀 감을 잡지 못했을 거다.
