@@ -61,3 +61,32 @@
 1. 예제 코드에서 `id`와 `label`은 `Task`가 아닌 `XYZ`의 직속 프로퍼티다. 일반적으로 `[[Prototype]]` 위임시 상탯값은 위임하는 쪽`XYZ` `ABC`에 두고 위임받는 쪽`Task`에는 두지 않는다.
 2. 클래스 디자인 패턴에서는 일부러 부모`Task` 자식`XYZ` 양쪽 메서드 이름을 `outputTask`라고 똑같이 붙여 오버라이드(다형성)를 이용했다. 작동 위임 패턴을 정반대다. 서로 다른 수준의 `[[Prototype]]` 연쇄에서 같은 명칭이 뒤섞이는 일은 될 수 있으면 피해야 한다. 작동 위임 패턴에서는 오버라이드하기 딱 좋은 일반적인 메서드 명칭보다는 각 객체의 작동 방식을 잘 설명하는 서술적인 명칭이 필요하다. 이렇게 해야 메서드의 이름만 봐도 어떤 작동을 하는지 그 의미가 분명해지므로 코드의 가독성과 유지 보수성이 높아진다.
 3. `this.setID(ID);`는 일단 `XYZ` 객체 내부에서 `setID()`를 찾지만 `XYZ`에는 이 메서드가 존재하지 않으므로 `[[Prototype]]` 위임 링크가 체결된 `Task`로 이동하여 `setID()`를 발견한다. 즉 `XYZ`가 `Task`에 작동을 위임하므로 `Task`가 가진 일반적인 유틸리티 메서드는 `XYZ`가 얼마든지 이용할 수 있는 셈이다.
+
+#### 상호 위임(허용되지 않음)
+- 복수의 객체가 양방향으로 상호 위임하면 발생하는 사이클은 허용되지 않는다. 즉 B → A로 링크된 상태에서 A → B로 링크하려고 시도하면 에러가 난다.
+
+### 6.1.3 멘탈 모델 비교
+- OO(객체 지향)와 OLOO 스타일로 작성된 코드를 비교해보자.
+```js
+// OO 스타일
+function Foo(who) {
+  this.me = who;
+}
+Foo.prototype.identity = funciton() {
+  return `I am ${this.me}`;
+};
+function Bar(who) {
+  Foo.call(this, who);
+}
+// Bar 클래스는 부모 클래스 Foo를 상속한다.
+Bar.prototype = Object.create(Foo.prototype);
+Bar.prototype.speak = function() {
+  alert(`Hello, ${this.identify}`)
+}
+// Bar 클래스를 b1, b2로 인스턴스화한다.
+// b1, b2는 Bar.prototype으로 위임되며 이는 다시 Foo.prototype으로 위임된다.
+var b1 = new Bar("b1");
+var b2 = new Bar("b2");
+b1.speak();
+b2.speak();
+```
