@@ -6,3 +6,31 @@
 ## 6.1 위임 지향 디자인으로 가는 길
 ### 6.1.1 클래스 이론
 - 클래스 디자인 패턴에서는 상속의 진가를 발휘하기 위해 될 수 있으면 **메서드를 오버라이드(다형성)** 할 것을 권장하고 작동 추가뿐 아니라 때에 따라서 오버라이드 이전 원본 메서드를 `super` 키워드로 호출할 수 있게 지원한다. 공통 요소는 추상화하여 부모 클래스의 일반 메서드로 구현하고 자식 클래스는 이를 더 세분화(오버라이드)하여 쓴다.
+- 소프트웨어 모델링이 필요한 세 개의 유사한 태스크 `Task` `XYZ` `ABC`가 있다고 하자. 클래스 디자인 패턴으로 이의 의사코드를 작성하면 다음과 같을 것이다:
+  ```js
+  class Task {
+    id;
+    Task(ID) {
+      id = ID;
+    }
+    outputTask() {
+      output(id);
+    }
+  }
+
+  class XYZ inherits Task {
+    label;
+    XYZ(ID, Label) {
+      super(ID);
+      label = Label;
+    }
+    outputTask() {
+      super();
+      output(label);
+    }
+  }
+
+  class ABC inherits Task {
+    // ...
+  }
+  ```
