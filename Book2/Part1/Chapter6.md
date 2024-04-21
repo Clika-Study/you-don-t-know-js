@@ -346,3 +346,29 @@ var controller2 = Object.create(AuthController);
   1. 스택 추적을 통해 디버깅하기가 곤란해진다.
   2. 재귀, 이벤트 등에서 자기 참조가 어려워진다.
   3. 코드 가독성이 조금 더 나빠진다.   
+
+## 6.5 인트로스펙션
+- 타입 인트로스펙션 Type Introspection이란 인스턴스를 조사해 객체 유형을 거꾸로 유추하는 걸 말한다.
+  - 클래스 인스턴스에서 타입 인트로스펙션은 주로 인스턴스가 생성된 소스 객체의 구조와 기능을 추론하는 용도로 쓰인다.
+```js
+function Foo() { /* ... */ }
+Foo.prototype...
+
+function Bar() { /* ... */ }
+Bar.prototype = Object.creatE(Foo.prototype);
+
+var b1 = new Bar("b1")
+
+// instanceof 연산자와 .prototype을 이용하여 타입 인트로스펙션을 실시한다.
+// Foo와 Bar의 관계 대조하기
+Bar.prototype instanceof Foo; // true
+Object.getPrototypeOf(Bar.prototype) === Foo.prototype; // true
+Foo.prototype.isPrototypeOf(Bar.prototype); // true
+
+// b1과 Foo, Bar의 관계를 대조하기
+b1 instanceof Foo; // true
+b1 instanceof Bar; // true
+Object.getPrototypeOf(b1) === Bar.prototype; // true
+Foo.prototype.isPrototypeOf(b1); // true
+Bar.prototype.isPrototypeOf(b1); // true
+```
