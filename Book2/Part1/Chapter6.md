@@ -119,45 +119,45 @@
 ### 6.2.1 위젯 클래스
 - 모든 위젯 작동의 공통적인 기반이 될 부모 클래스 `Widget`을 작성하고, 그 다음에 유형마다 다른 위젯(여기서는 `Button`을 예시로 작성해본다)을 나타내는 자식 클래스를 작성한다.
   - 이번 예문에서는 ES6 `class` 간편 구문을 사용하여 작성한다: 
-```js
-// 부모 클래스
-class Widget {
-  constructor(width, height) {
-    this.width = width || 50;
-    this.height = height || 50;
-    this.$elem = null;
-  }
- render($where) {
-    if (this.$elem) {
-      this.$elem.css({
-        width: `${this.width}px`,
-        height: `${this.height}px`,
-      }).appendTo($where);
+  ```js
+  // 부모 클래스
+  class Widget {
+    constructor(width, height) {
+      this.width = width || 50;
+      this.height = height || 50;
+      this.$elem = null;
+    }
+   render($where) {
+      if (this.$elem) {
+        this.$elem.css({
+          width: `${this.width}px`,
+          height: `${this.height}px`,
+        }).appendTo($where);
+      }
     }
   }
-}
-// 자식 클래스
-class Button extends Widget {
-  constructor(width, height, label) {
-    super(width, height);
-    this.label = label || "Default";
-    this.$elem = $("<button>").text(this.label);
+  // 자식 클래스
+  class Button extends Widget {
+    constructor(width, height, label) {
+      super(width, height);
+      this.label = label || "Default";
+      this.$elem = $("<button>").text(this.label);
+    }
+    render($where) {
+      super($where);
+      this.$elem.click(this.onClick.bind(this));
+    }
+    onClick(evt) {
+      console.log(`${this.label} 버튼이 클릭됨!`);
+    }
   }
-  render($where) {
-    super($where);
-    this.$elem.click(this.onClick.bind(this));
-  }
-  onClick(evt) {
-    console.log(`${this.label} 버튼이 클릭됨!`);
-  }
-}
-// 버튼 클래스로 화면에 버튼 UI 표시하기
-$(document).ready(function() {
-  var $body = $(document.body);
-  var btn1 = new Button(125, 30, "Hello");
-  var btn2 = new Button(150, 40, "World");
-  btn1.render($body);
-  btn2.render($body);
-})
-```
+  // 버튼 클래스로 화면에 버튼 UI 표시하기
+  $(document).ready(function() {
+    var $body = $(document.body);
+    var btn1 = new Button(125, 30, "Hello");
+    var btn2 = new Button(150, 40, "World");
+    btn1.render($body);
+    btn2.render($body);
+  })
+  ```
 - OO 디자인 패턴에 따르면 부모 클래스에는 기본 `render()`만 선언해두고 자식 클래스가 이를 오버라이드하도록 유도한다. 기본 기능을 완전히 갈아치운다기 보다는 버튼에만 해당하는 작동을 덧붙이는 식으로 기본 기능을 증강 `augmentation`한다.
