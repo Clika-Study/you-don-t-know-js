@@ -213,69 +213,69 @@
 ## 6.3 더 간단한 디자인: 탈클래스화
 - (1) 로그인 페이지의 입력 폼을 처리하는 객체, (2) 서버와 직접 인증(통신)을 수행하는 객체 이렇게 두 가지 컨트롤러 객체가 있다고 하자.
   - 전형적인 클래스 디자인 패턴에 의하면 `Controller` 클래스에 기본적인 기능을 담아두고 이를 상속받은 `LoginController`와 `AuthController` 두 자식 클래스가 각자 상황에 맞게 구체적인 작동 로직을 구현하는 식으로 구성된다.
-```js
-// 부모 클래스
-function Controller() {
-  this.errors = [];
-}
-Controller.prototype.showDialog = function(title, msg) { /* 사용자에게 다이얼로그 창으로 타이틀과 메시를 표시 */ };
-Controller.prototype.success = function(msg) { this.showDialog("Success", msg) };
-Controller.prototype.failure = function(err) {
-  this.errors.push(err);
-  this.showDialog("Error", err);
-};
-// 자식 클래스 LoginController
-function LoginController() { Controller.call(this); }
-// 자식 클래스를 부모 클래스에 연결한다.
-LoginController.prototype = Object.create(Controller.prototype);
-LoginController.prototype.getUser = function() {
-  return document.getElementById("login_username").value;
-}
-LoginController.prototype.validateEntity = function(user) {
-  user = user || this.getUser();
-  if (!user) {
-    return this.failure("사용자명을 입력하세요.")
+  ```js
+  // 부모 클래스
+  function Controller() {
+    this.errors = [];
   }
-  else if (user.length < 8) {
-    return this.failure("사용자명은 8자 이상이어야 합니다.")
+  Controller.prototype.showDialog = function(title, msg) { /* 사용자에게 다이얼로그 창으로 타이틀과 메시를 표시 */ };
+  Controller.prototype.success = function(msg) { this.showDialog("Success", msg) };
+  Controller.prototype.failure = function(err) {
+    this.errors.push(err);
+    this.showDialog("Error", err);
+  };
+  // 자식 클래스 LoginController
+  function LoginController() { Controller.call(this); }
+  // 자식 클래스를 부모 클래스에 연결한다.
+  LoginController.prototype = Object.create(Controller.prototype);
+  LoginController.prototype.getUser = function() {
+    return document.getElementById("login_username").value;
   }
-  return true
-};
-LoginController.prototype.failure = function(err) {
-  Controller.prototype.failure.call(this, `로그인 실패: ${err}`);
-};
-// 자식 클래스 AuthController
-function AuthController(login) {
-  Controller.call(this);
-  // 상속 + 구성
-  this.login = login;
-}
-// 자식 클래스를 부모 클래스에 연결한다.
-AuthController.prototype = Object.create(Controller.prototype);
-AuthController.prototype.server = function(url, data) {
-  return $ajax({
-    url: url,
-    data: data,
-  });
-}
-AuthController.prototype.checkAuth = function() {
-  var user = this.login.getUser();
-  if (this.login.validateEntity(user)) {
-    this.server("/check-user", {
-      user: user,
-      pw: pw
-    }).fail(this.failure.bind(this));
+  LoginController.prototype.validateEntity = function(user) {
+    user = user || this.getUser();
+    if (!user) {
+      return this.failure("사용자명을 입력하세요.")
+    }
+    else if (user.length < 8) {
+      return this.failure("사용자명은 8자 이상이어야 합니다.")
+    }
+    return true
+  };
+  LoginController.prototype.failure = function(err) {
+    Controller.prototype.failure.call(this, `로그인 실패: ${err}`);
+  };
+  // 자식 클래스 AuthController
+  function AuthController(login) {
+    Controller.call(this);
+    // 상속 + 구성
+    this.login = login;
   }
-}
-AuthController.prototype.failure = function(err) {
-  Controller.prototype.failure.call(this, `인증 실패: ${err}`);
-};
-
-var auth = new AuthController(
-  new LoginController()
-);
-auth.checkAuth();
-``` 
+  // 자식 클래스를 부모 클래스에 연결한다.
+  AuthController.prototype = Object.create(Controller.prototype);
+  AuthController.prototype.server = function(url, data) {
+    return $ajax({
+      url: url,
+      data: data,
+    });
+  }
+  AuthController.prototype.checkAuth = function() {
+    var user = this.login.getUser();
+    if (this.login.validateEntity(user)) {
+      this.server("/check-user", {
+        user: user,
+        pw: pw
+      }).fail(this.failure.bind(this));
+    }
+  }
+  AuthController.prototype.failure = function(err) {
+    Controller.prototype.failure.call(this, `인증 실패: ${err}`);
+  };
+  
+  var auth = new AuthController(
+    new LoginController()
+  );
+  auth.checkAuth();
+  ``` 
 
 ## 6.4 더 멋진 구문: function 키워드가 필요없는 단축 메서드
 - ES6 class가 시선을 잡아끄는 매력 중 하나는 클래스 메서드를 짧은 구문으로 선언할 수 있다는 점이다. 즉 선언시 `function` 키워드를 쓰지 않아도 된다.
