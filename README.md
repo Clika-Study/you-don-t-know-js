@@ -26,4 +26,5 @@
 - [Chapter 2. this가 이런 거로군!](./Book2/Part1/Chapter2.md)
 - [Chapter 3. 객체](./Book2/Part1/Chapter3.md)
 - [Chpater 4. 클래스와 객체의 혼합](./Book2/Part1/Chapter4.md)
-- [Chpater 4. 프로토타입](./Book2/Part1/Chapter5.md)
+- [Chpater 5. 프로토타입](./Book2/Part1/Chapter5.md)
+- [Chpater 6. 작동 위임](./Book2/Part1/Chapter6.md)
