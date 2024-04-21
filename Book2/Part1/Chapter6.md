@@ -81,12 +81,34 @@ function Bar(who) {
 // Bar 클래스는 부모 클래스 Foo를 상속한다.
 Bar.prototype = Object.create(Foo.prototype);
 Bar.prototype.speak = function() {
-  alert(`Hello, ${this.identify}`)
+  alert(`Hello, ${this.identify}`);
 }
 // Bar 클래스를 b1, b2로 인스턴스화한다.
 // b1, b2는 Bar.prototype으로 위임되며 이는 다시 Foo.prototype으로 위임된다.
 var b1 = new Bar("b1");
 var b2 = new Bar("b2");
+b1.speak();
+b2.speak();
+```
+- 이제 OLOO 스타일:
+```js
+Foo = {
+  init: funciton(who) {
+    this.me = who;
+  },
+  identify: function() {
+    return `I am ${this.me}`;
+  }
+};
+Bar = Object.create(Foo);
+Bar.speak = function() {
+  alert(`Hello, ${this.identify}`);
+};
+// b1 → Bar → Foo로의 위임을 활용한다.
+var b1 = Object.create(Bar);
+b1.init("b1");
+var b2 = Object.create(Bar);
+b1.init("b2");
 b1.speak();
 b2.speak();
 ```
