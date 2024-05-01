@@ -28,3 +28,7 @@
 - [Chpater 4. 클래스와 객체의 혼합](./Book2/Part1/Chapter4.md)
 - [Chpater 5. 프로토타입](./Book2/Part1/Chapter5.md)
 - [Chpater 6. 작동 위임](./Book2/Part1/Chapter6.md)
+
+### Part 2 비동기와 성능
+
+- [Chapter 1. 비동기성:지금과 나중](./Book2/Part2/Chapter1.md)
