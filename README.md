@@ -31,4 +31,5 @@
 
 ### Part 2 비동기와 성능
 
-- [Chapter 1. 비동기성:지금과 나중](./Book2/Part2/Chapter1.md)
+- [Chapter 1. 비동기성: 지금과 나중](./Book2/Part2/Chapter1.md)
+- [Chapter 2. 콜백](./Book2/Part2/Chapter2.md)
