@@ -35,4 +35,4 @@
 - [Chapter 2. 콜백](./Book2/Part2/Chapter2.md)
 - Chapter 3. 프라미스
   - 3.1 ~ 3.4
-  - 3.5 ~ 3.9(./Book2/Part2/Chapter3/3.5-3.9.md)
+  - [3.5 ~ 3.9](./Book2/Part2/Chapter3/3.5-3.9.md)
