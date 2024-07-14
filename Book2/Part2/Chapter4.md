@@ -285,7 +285,25 @@ try {
 ## 4.7 썽크
 - 일반 컴퓨터 Thunk라는, 자바스크립트 이전에 등장한 개념이 있다. 한정된 의미에서 표현하자면 다른 함수를 호출한 운명을 가진 인자가 없는 함수다.
 - 어떤 함수 정의부를 또 다른 함수 호출부로 감싸 실행을 지연시키는데, 여기서 감싼 함수가 바로 Thunk다. 따라서 Thunk를 실행하면 결국 원래 함수를 호출하는 것이나 다를 바 없다.
+- 일일이 Thunk를 수동으로 코딩할 필요 없이, Thunk를 만드는 함수를 생성할 유틸리티를 작성할 수 있다:
+  ```js
+  function thunkify(fn) {
+    var args = [].slice.call(arguments, 1);
+    return function(cb) {
+      args.push(cb);
+      return fn.apply(null, args);
+    };
+  }
+  var fooThunk = thunkify(foo, 3, 4);
+
+  fooThunk(function (sum) {
+    console.log(sum); // 7
+  });
+  ```
+  
 ### 4.7.1 s/promise/thunk
+- Thunk와 Promise는 작동 개념이 동등하지 않아 직접적인 상호 호환성은 없다. 있는 그대로의 Thunk와 비교하면 Promise가 훨씬 더 좋다. 한편 둘 다 어떤 값을 요청하여 비동기적 응답을 받는다는 점은 같다.
+- Thunk 자체는 Promise의 믿음성/조합성을 거의 보장하지 못한다. Thunk를 특정한 제너레이터의 비동기 패턴에서 Promise 대용으로 쓸 수는 있지만 Promise가 제공하는 제반 혜택을 생각하면 이상적인 해결책은 아니다.
 
 ## 4.8 ES6 이전 제너레이터
 ### 4.8.1 수동 변환
