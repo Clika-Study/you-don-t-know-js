@@ -306,8 +306,86 @@ try {
 - Thunk 자체는 Promise의 믿음성/조합성을 거의 보장하지 못한다. Thunk를 특정한 제너레이터의 비동기 패턴에서 Promise 대용으로 쓸 수는 있지만 Promise가 제공하는 제반 혜택을 생각하면 이상적인 해결책은 아니다.
 
 ## 4.8 ES6 이전 제너레이터
+- 제너레이터는 ES6 이후에 나온 신생 구문이므로 Promise처럼 단순 폴리필은 불가능하다. 그래도 어떻게든 제너레이터를 브라우저에서 쓸 방법은 없을까?
+
+```js
+function foo(url) {
+  // 제너레이터 상태를 관리
+  var state;
+  // 제너레이터 스코프 변수 선언
+  var val;
+
+  function process(v) {
+    switch (state) {
+      case 1:
+        console.log("요청 중:", url);
+        return request(url);
+      case 2:
+        val = v;
+        console.log(val);
+        return;
+      case 3:
+	var err = v;
+        console.log("에러:", err);
+        return false;
+    }
+  }
+
+  return {
+    next: function(v) {
+      // 초기 상태
+      if (!state) {
+	state = 1;
+	return {
+	  done: false,
+	  value: process()	
+        };
+      }
+      // yield 재개가 성공
+      else if (state == 1) {
+	state = 2;
+	return {
+	  done: true,
+	  value: process(v)	
+	};
+      }
+      // 제너레이터는 이미 완료
+      else {
+	return {
+	  done: true,
+	  value: undefined
+	};
+      }					
+    },
+    "throw": function(e) {
+      // 명시적인 에러 처리는 상태 1에만 해당한다.
+      if (state == 1) {
+	state = 3;
+	return {
+	  done: true,
+	  value: process(e)
+	};
+      }
+      // 이밖의 에러는 처리되지 않으니
+      // 그냥 곧바로 내던진다.
+      else {
+	throw e;
+      }		
+    }
+  };
+}
+```
+
+위 프로그램 실행을 살펴보자.
+1. 이터레이터 `next()`를 처음 호출하면 제너레이터는 초기화되지 않은 상태에서 상태 `1`로 바뀌고 `process()`를 호출하여 상태 `1`을 처리한다. `request()`의 반환 값, 즉 `AJAX` 응답에 해당하는 프라미스는 `next()` 호출의 `value` 프로퍼티로 돌려준다.
+2. `AJAX` 요청이 성공하면 `next()`를 두 번째 호출하여 `AJAX` 응답값을 보내고 상태 `2`가 된다. `AJAX` 응답값을 인자로 `process()`를 재호출하고 `next()` 호출의 `value` 프로퍼티는 `undefined`가 된다.
+3. 반면, `AJAX` 요청이 실패하면 에러 객체와 함께 `throw()`가 호출되고 상태 `1`에서 (상태 `2` 대신) 상태 `3`으로 변경된다. 이번에는 에러값을 인자로 `process()`를 한다. 이 케이스의 반환 값 `false`는 `throw()` 호출의 `value` 프로퍼티 값이 된다.
+
 ### 4.8.1 수동 변환
+
+
 ### 4.8.2 자동 변환
 
 ## 4.9 정리하기
+https://ko.javascript.info/generators
   
