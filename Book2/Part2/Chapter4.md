@@ -193,3 +193,233 @@ p.then((text)=>{
 중요한 부분은 프라미스 제너레이터를 최대한 활용하는 방법은 위와 같이 프라미스를 yield 한 다음, 이 프라미스로 제너레이터의 이터레이터를 제어하는 것이다.
 
 만약 여러 비동기 코드가 동시에 실행돼야 할 일이 있으면 yield 로는 동시에 두 곳에서 멈추는 것이 불가능 하기에 좀 더 프라미스 본연의 능력을 사용하여 코드를 작성하는 것이 좋다.
+
+
+## 4.5 제너레이터 위임
+```js
+function *foo*() {
+  console.log("'*foo()' 시작");
+  yield 3;
+  yield 4;
+  console.log("'*foo()' 끝");
+}
+
+function *bar() {
+  yield 1;
+  yield 2;
+  yield *foo(); 'yield'-위임!
+  yield 5;
+}
+
+var it = bar();
+it.next().value; // 1
+it.next().value; // 2
+it.next().value; // '*foo() 시작'
+                 // 3 
+it.next().value; // 4
+it.next().value; // '*foo() 끝' 
+                 // 5
+```
+
+두 번째 `it.next()` 호출까지는 `*bar()`를 제어하지만 세 번째 호출은 `*foo()`를 시작하고 `*bar()` 대신 `*foo()`를 제어한다. 
+즉 `*bar()`가 자신의 순회 권한을 `*foo()`에게 위임했다고 볼 수 있기 때문에 위임이라는 말이 붙은 거이다. 
+`it` 이터레이터로 전체 `*foo()` 이터레이터를 훑고나면 자동으로 제어권은 `*bar()`로 넘어온다.
+
+### 4.5.1 왜 위임을?
+`yield`-위임을 하는 목적은 주로 코드를 조직화하고 그렇게 해서 일반 함수 호출과 맞추기 위함이다. 
+
+### 4.5.2 메시지 위임
+`yield`-위임은 이터레이터뿐 아니라 양방향 메시징에도 쓰인다. 다음은 예외 처리를 위임하는 예시다.
+```js
+function *foo() {
+  try {
+    yield "B";
+  } catch (err) {
+    console.log("'*foo()'에서 붙잡힌 에러:", err)
+  }
+  yield "C";
+  yield "D";
+}
+
+function *bar() {
+  yield "A";
+  try {
+    yield *foo();
+  } catch (err) {
+    console.log("'*bar()'에서 붙잡힌 에러", err);
+  }
+  yield "E";
+  yield *baz();
+  yield "G";
+}
+
+function *baz() {
+  throw "F";
+}
+
+var it = bar();
+
+console.log(it.next().value); // A
+console.log(it.next(1).value); // B
+console.log(it.throw(2).value);
+// *foo()에서 붙잡힌 에러: 2
+// C
+console.log(it.next(3).value);
+// *bar()에서 붙잡힌 에러: D
+// E
+
+try {
+  console.log(it.next(4).value);
+} catch (err) {
+  console.log(err);
+}
+// 외부에서 붙잡힌 에러: F
+```
+1. `it.throw(2)`하면 에러 메시지 `2`를 `*bar()`에 전하고 이 메시지는 다시 `*foo()`로 위임되어 우아하게 에러를 잡아 처리한다. 이후 `yield "C"`는 `it.throw(2)` 호출의 결괏값 "C"를 보낸다.
+2. 그리고 `*foo()` 에서 `*bar()` 방향으로 전파되어 던져진 "D"는 `*bar()`가 잡아 역시 우아하게 처리한다. 그런 다음 `yield "E"`는 `it.next(3)` 호출의 결괏값 "E"를 보낸다.
+3. 다음, `*baz()`에서 발생한 예외는 `*bar()`에서 잡히지 않았다. 따라서 `*baz()` `*bar()` 모두 완료 상태가 된다. 이 코드 밑으로 연달아 `next()`를 호출해도 `undefined`를 반환할 뿐 "G"값을 받을 방법은 없다. 
+
+## 4.6 제너레이터 동시성
+
+- 아래 프로그램에서 `runAll`은 다중 제너레이터 인스턴스가 공유할 수 있는 내부 변수 공간을 제공하는 유틸리티다.
+- 두 제너레이터가 단순한 제어권 조정뿐 아니라 `data.res` `yield`된 메세지를 통해 `url1` `url2` 두 값을 교류하면서 실질적인 통신을 서로 하게 된다.
+    - 이 로직은 순차적 프로세스 통신 CSP, Communicating Sequential Processes이라는 더 정교한 비동기 기법의 개념적 근거 역할을 한다. 
+  
+```js
+// request는 프라미스-인식형 유틸리티다.
+runAll(
+  function*(data) {
+    data.res = [];
+    // 제어권 전달
+    var url1 = yield "http://some.url.2";
+    var p1 = request(url1); // http://some.url.1
+    // 제어권 넘김
+    yield;
+    data.res.push(yield p1);		
+  },
+  function*(data) {
+    // 제어권 전달
+    var url2 = yield "http://some.url.1";
+    var p2 = request(url2); // http://some.url.2
+    // 제어권 넘김
+    yield;
+    data.res.push(yield p2);		
+  }	
+);
+```
+
+## 4.7 썽크
+- 일반 컴퓨터 Thunk라는, 자바스크립트 이전에 등장한 개념이 있다. 한정된 의미에서 표현하자면 다른 함수를 호출한 운명을 가진 인자가 없는 함수다.
+- 어떤 함수 정의부를 또 다른 함수 호출부로 감싸 실행을 지연시키는데, 여기서 감싼 함수가 바로 Thunk다. 따라서 Thunk를 실행하면 결국 원래 함수를 호출하는 것이나 다를 바 없다.
+- 일일이 Thunk를 수동으로 코딩할 필요 없이, Thunk를 만드는 함수를 생성할 유틸리티를 작성할 수 있다:
+  ```js
+  function thunkify(fn) {
+    var args = [].slice.call(arguments, 1);
+    return function(cb) {
+      args.push(cb);
+      return fn.apply(null, args);
+    };
+  }
+  var fooThunk = thunkify(foo, 3, 4);
+
+  fooThunk(function (sum) {
+    console.log(sum); // 7
+  });
+  ```
+  
+### 4.7.1 s/promise/thunk
+- Thunk와 Promise는 작동 개념이 동등하지 않아 직접적인 상호 호환성은 없다. 있는 그대로의 Thunk와 비교하면 Promise가 훨씬 더 좋다. 한편 둘 다 어떤 값을 요청하여 비동기적 응답을 받는다는 점은 같다.
+- Thunk 자체는 Promise의 믿음성/조합성을 거의 보장하지 못한다. Thunk를 특정한 제너레이터의 비동기 패턴에서 Promise 대용으로 쓸 수는 있지만 Promise가 제공하는 제반 혜택을 생각하면 이상적인 해결책은 아니다.
+
+## 4.8 ES6 이전 제너레이터
+- 제너레이터는 ES6 이후에 나온 신생 구문이므로 Promise처럼 단순 폴리필은 불가능하다. 그래도 어떻게든 제너레이터를 브라우저에서 쓸 방법은 없을까?
+
+### 4.8.1 수동 변환
+
+```js
+function foo(url) {
+  // 제너레이터 상태를 관리
+  var state;
+  // 제너레이터 스코프 변수 선언
+  var val;
+
+  function process(v) {
+    switch (state) {
+      case 1:
+        console.log("요청 중:", url);
+        return request(url);
+      case 2:
+        val = v;
+        console.log(val);
+        return;
+      case 3:
+	var err = v;
+        console.log("에러:", err);
+        return false;
+    }
+  }
+
+  return {
+    next: function(v) {
+      // 초기 상태
+      if (!state) {
+	state = 1;
+	return {
+	  done: false,
+	  value: process()	
+        };
+      }
+      // yield 재개가 성공
+      else if (state == 1) {
+	state = 2;
+	return {
+	  done: true,
+	  value: process(v)	
+	};
+      }
+      // 제너레이터는 이미 완료
+      else {
+	return {
+	  done: true,
+	  value: undefined
+	};
+      }					
+    },
+    "throw": function(e) {
+      // 명시적인 에러 처리는 상태 1에만 해당한다.
+      if (state == 1) {
+	state = 3;
+	return {
+	  done: true,
+	  value: process(e)
+	};
+      }
+      // 이밖의 에러는 처리되지 않으니
+      // 그냥 곧바로 내던진다.
+      else {
+	throw e;
+      }		
+    }
+  };
+}
+```
+
+위 프로그램 실행을 살펴보자.
+1. 이터레이터 `next()`를 처음 호출하면 제너레이터는 초기화되지 않은 상태에서 상태 `1`로 바뀌고 `process()`를 호출하여 상태 `1`을 처리한다. `request()`의 반환 값, 즉 `AJAX` 응답에 해당하는 프라미스는 `next()` 호출의 `value` 프로퍼티로 돌려준다.
+2. `AJAX` 요청이 성공하면 `next()`를 두 번째 호출하여 `AJAX` 응답값을 보내고 상태 `2`가 된다. `AJAX` 응답값을 인자로 `process()`를 재호출하고 `next()` 호출의 `value` 프로퍼티는 `undefined`가 된다.
+3. 반면, `AJAX` 요청이 실패하면 에러 객체와 함께 `throw()`가 호출되고 상태 `1`에서 (상태 `2` 대신) 상태 `3`으로 변경된다. 이번에는 에러값을 인자로 `process()`를 한다. 이 케이스의 반환 값 `false`는 `throw()` 호출의 `value` 프로퍼티 값이 된다.
+
+### 4.8.2 자동 변환
+- 사실은 ES6 제너레이터를 자동 변환하는 툴들이 이미 나와있다. 그중 똑똑한 페이스북 개발자들이 만든 리제너레이터 `Regenerator`라는 툴이 있다.
+- 아무튼 요점은 제너레이터가 ES6 이상의 환경에서만 쓸모있는 장치는 아니라는 사실이다.
+
+## 4.9 정리하기
+- 제너레이터는 ES6부터 도입된 새로운 유형의 함수로, 일반 함수처럼 완전-실행하지 않고 실행 도중 멈출 수도 있고, 멈춘 지점에서 나중에 다시 시작할 수도 있다.\
+- `yield / next()` 이중성은 제어 장치뿐 아니라 양방향 메시징 체계로도 활용이 가능하다.
+    - `yield` 표현식은 일단 멈추고 어떤 값을 기다리게 하고,
+    - `next` 호출은 이렇게 멈춘 `yield` 표현식에 값을 전달해준다
+- 비동기 흐름 제어와 연관된 제너레이터의 핵심은 제너레이터 내부 코드가 동기/순차적 형태로 일련의 작업 단계를 자연스럽게 표현할 수 있는 능력이다.
+- 결과적으로 제너레이터는 비동기 코드의 순차, 동기, 중단적 패턴을 유지함으로써 개발자들이 훨씬 더 코드를 자연스럽게 이해하게 할 뿐만 아니라 콜백식 비동기 코드의 치명적인 단점 두 가지를 해결한 일등 공신이다.   
+
+https://ko.javascript.info/generators
+  
