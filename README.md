@@ -35,3 +35,5 @@
 - [Chapter 2. 콜백](./Book2/Part2/Chapter2.md)
 - [Chapter 3. 프라미스](./Book2/Part2/Chapter3.md)
 - [Chapter 4. 제너레이터](./Book2/Part2/Chapter4.md)
+- [Chapter 5. 프로그램 성능](./Book2/Part2/Chapter5.md)
+
